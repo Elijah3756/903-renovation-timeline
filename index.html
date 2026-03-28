@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>903 13th Ave -- Renovation Timeline</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f8f9fb;
+    color: #1a1a2e;
+    padding: 0;
+  }
+
+  .page-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d3561 100%);
+    color: #fff;
+    padding: 40px 48px 32px;
+  }
+  .page-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .page-header .subtitle {
+    font-size: 14px;
+    font-weight: 400;
+    color: #a8b4d0;
+  }
+  .header-meta {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .header-meta .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .header-meta .meta-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #7b8ab8;
+    font-weight: 600;
+  }
+  .header-meta .meta-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: #e0e6f0;
+  }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    padding: 20px 48px;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .controls label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .filter-btn {
+    padding: 6px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover { background: #f3f4f6; }
+  .filter-btn.active {
+    background: #1a1a2e;
+    color: #fff;
+    border-color: #1a1a2e;
+  }
+
+  .chart-container {
+    padding: 24px 48px 48px;
+    overflow-x: auto;
+  }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+  }
+
+  .gantt-wrapper {
+    position: relative;
+    min-width: 1540px;
+  }
+
+  .gantt-header {
+    display: flex;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    margin-left: 360px;
+  }
+  .gantt-header .week-col {
+    flex: 1;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: #9ca3af;
+    letter-spacing: 0.3px;
+    min-width: 90px;
+    line-height: 1.3;
+    padding: 0 2px;
+  }
+  .gantt-header .week-col.closing-week {
+    color: #c81e1e;
+    font-weight: 700;
+    position: relative;
+  }
+  .gantt-header .week-col .week-number {
+    display: block;
+    font-size: 9px;
+    color: #b0b8c9;
+    font-weight: 500;
+    margin-top: 1px;
+  }
+  .gantt-header .week-col.closing-week .week-number {
+    color: #c81e1e;
+  }
+
+  .phase-group {
+    margin-bottom: 4px;
+  }
+  .phase-label-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 0 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .phase-label-row:hover .phase-name { color: #1a1a2e; }
+  .phase-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #fff;
+    font-weight: 700;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  .phase-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #374151;
+    width: 320px;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .phase-budget {
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 500;
+    margin-left: auto;
+    padding-right: 12px;
+    white-space: nowrap;
+  }
+
+  .task-row {
+    display: flex;
+    align-items: center;
+    padding: 3px 0;
+    transition: background 0.1s;
+    border-radius: 4px;
+  }
+  .task-row:hover { background: #f9fafb; }
+
+  .task-name {
+    width: 360px;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #6b7280;
+    padding-left: 34px;
+    padding-right: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .task-cost {
+    font-size: 10px;
+    color: #9ca3af;
+    font-weight: 500;
+    margin-left: 6px;
+  }
+  .task-priority {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .priority-must { background: #fde8e8; color: #c81e1e; }
+  .priority-should { background: #fef3cd; color: #92640d; }
+  .priority-could { background: #e8f4fd; color: #1a6fb5; }
+
+  .task-bar-area {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+  .bar-cell {
+    flex: 1;
+    min-width: 90px;
+    padding: 2px 1px;
+    position: relative;
+  }
+  .bar-segment {
+    height: 22px;
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .bar-segment:hover {
+    transform: scaleY(1.15);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 10;
+  }
+
+  .tooltip {
+    display: none;
+    position: fixed;
+    background: #1a1a2e;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    max-width: 280px;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  .tooltip .tt-title { font-weight: 700; margin-bottom: 4px; }
+  .tooltip .tt-detail { color: #a8b4d0; }
+
+  .divider-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #e5e7eb;
+    z-index: 0;
+  }
+
+  .milestone-marker {
+    width: 16px;
+    height: 16px;
+    background: #c81e1e;
+    transform: rotate(45deg);
+    position: absolute;
+    top: 3px;
+    left: calc(50% - 8px);
+    border-radius: 2px;
+    cursor: pointer;
+    z-index: 5;
+    transition: transform 0.15s;
+  }
+  .milestone-marker:hover {
+    transform: rotate(45deg) scale(1.2);
+    box-shadow: 0 2px 8px rgba(200,30,30,0.4);
+  }
+
+  .today-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #ef4444;
+    z-index: 5;
+  }
+  .today-label {
+    position: absolute;
+    top: -18px;
+    left: -14px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #ef4444;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 0 48px 24px;
+  }
+  .summary-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .summary-card .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #9ca3af;
+    margin-bottom: 6px;
+  }
+  .summary-card .card-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+  .summary-card .card-detail {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+  }
+
+  .critical-path-note {
+    margin: 0 48px 24px;
+    padding: 16px 20px;
+    background: #fef3cd;
+    border: 1px solid #f0d78c;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #78600d;
+    line-height: 1.5;
+  }
+  .critical-path-note strong { color: #5c4a08; }
+
+  .budget-cutoff {
+    display: flex;
+    align-items: center;
+    margin: 12px 0;
+    position: relative;
+  }
+  .budget-cutoff-line {
+    flex: 1;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, #ef4444 0, #ef4444 8px, transparent 8px, transparent 14px);
+  }
+  .budget-cutoff-label {
+    position: absolute;
+    left: 0;
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(239,68,68,0.3);
+  }
+  .budget-cutoff-right {
+    position: absolute;
+    right: 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ef4444;
+    background: #fef2f2;
+    padding: 4px 12px;
+    border-radius: 4px;
+    border: 1px solid #fca5a5;
+  }
+
+  .phase-group.unfunded .phase-name {
+    color: #9ca3af;
+  }
+  .phase-group.unfunded .phase-icon {
+    opacity: 0.4;
+  }
+  .phase-group.unfunded .task-name {
+    color: #b0b8c9;
+  }
+  .phase-group.unfunded .bar-segment {
+    opacity: 0.25 !important;
+    background: #9ca3af !important;
+  }
+  .phase-group.unfunded .task-cost {
+    color: #d1d5db;
+  }
+  .phase-group.unfunded .task-priority {
+    opacity: 0.5;
+  }
+
+  .running-total {
+    font-size: 10px;
+    font-weight: 600;
+    color: #059669;
+    margin-left: 8px;
+  }
+  .running-total.over-budget {
+    color: #ef4444;
+  }
+
+  .budget-summary-bar {
+    margin: 0 48px 20px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .budget-bar-track {
+    flex: 1;
+    height: 24px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .budget-bar-funded {
+    height: 100%;
+    background: linear-gradient(90deg, #059669, #10b981);
+    border-radius: 12px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transition: width 0.5s;
+  }
+  .budget-bar-unfunded {
+    height: 100%;
+    background: repeating-linear-gradient(135deg, #fecaca 0, #fecaca 4px, #fee2e2 4px, #fee2e2 8px);
+    position: absolute;
+    top: 0;
+    border-radius: 0 12px 12px 0;
+  }
+  .budget-bar-limit {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 3px;
+    background: #ef4444;
+    border-radius: 2px;
+    z-index: 2;
+  }
+  .budget-bar-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap;
+  }
+  .budget-bar-label .funded { color: #059669; }
+  .budget-bar-label .unfunded { color: #ef4444; }
+
+  @media print {
+    body { background: #fff; }
+    .controls { display: none; }
+    .page-header { padding: 24px; }
+    .chart-container { padding: 24px; }
+    .summary-cards { padding: 0 24px 16px; }
+    .critical-path-note { margin: 0 24px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>903 13th Avenue -- Renovation Waterfall</h1>
+  <div class="subtitle">Augusta, GA 30901 -- Purchase + Stabilization Roadmap</div>
+  <div class="header-meta">
+    <div class="meta-item">
+      <span class="meta-label">Target Closing</span>
+      <span class="meta-value">April 2, 2026</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Est. Completion</span>
+      <span class="meta-value">June 25, 2026</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Budget Range</span>
+      <span class="meta-value" style="color:#ff6b6b; font-weight:800;">$40K -- $79K (full scope)</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Total Funding</span>
+      <span class="meta-value" style="font-weight:800;">$30,000</span>
+    </div>
+  </div>
+</div>
+
+<div class="summary-cards">
+  <div class="summary-card">
+    <div class="card-label">Total Phases</div>
+    <div class="card-value">7</div>
+    <div class="card-detail">+ Pre-closing prep</div>
+  </div>
+  <div class="summary-card">
+    <div class="card-label">Critical Path</div>
+    <div class="card-value">12 Weeks</div>
+    <div class="card-detail">Phase 1 &rarr; 4 &rarr; 6</div>
+  </div>
+  <div class="summary-card">
+    <div class="card-label">Must-Have Items</div>
+    <div class="card-value">6</div>
+    <div class="card-detail">Safety + structural</div>
+  </div>
+  <div class="summary-card">
+    <div class="card-label">Renovation Budget</div>
+    <div class="card-value" style="color:#ef4444;">$30K of $59K</div>
+    <div class="card-detail">Phases 5-7 unfunded ($29K gap)</div>
+  </div>
+</div>
+
+<div class="critical-path-note">
+  <strong>Critical Path:</strong> Crawlspace/Structure (Phase 1) &rarr; Plumbing (Phase 4) &rarr; Interior Finish (Phase 6). Any delay in crawlspace or plumbing pushes the entire interior completion date. Roof (Phase 2) can run in parallel with Phase 1 since they are different crews working different areas.
+</div>
+
+<div class="budget-summary-bar">
+  <div class="budget-bar-label">
+    <span class="funded">$30K funded</span> of <span class="unfunded">$59K mid-estimate</span>
+  </div>
+  <div class="budget-bar-track">
+    <div class="budget-bar-funded" style="width: 50.8%;"></div>
+    <div class="budget-bar-unfunded" style="left: 50.8%; width: 49.2%;"></div>
+    <div class="budget-bar-limit" style="left: 50.8%;"></div>
+  </div>
+  <div class="budget-bar-label" style="text-align:right;">
+    <span class="unfunded">$29K+ unfunded</span>
+  </div>
+</div>
+
+<div class="controls">
+  <label>Filter:</label>
+  <button class="filter-btn active" data-filter="all">All Phases</button>
+  <button class="filter-btn" data-filter="must">Must Have</button>
+  <button class="filter-btn" data-filter="should">Should Have</button>
+  <button class="filter-btn" data-filter="could">Could Have</button>
+</div>
+
+<div class="chart-container">
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:#6c3fc5"></div>Pre-Closing</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#c81e1e"></div>Phase 1 -- Structure</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#d97706"></div>Phase 2 -- Roof</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#2563eb"></div>Phase 3 -- Electrical</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#0d9488"></div>Phase 4 -- Plumbing</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#7c3aed"></div>Phase 5 -- HVAC</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#059669"></div>Phase 6 -- Interior</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#64748b"></div>Phase 7 -- Exterior</div>
+  </div>
+
+  <div class="gantt-wrapper" id="ganttWrapper">
+    <!-- JS will render here -->
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const PHASES = [
+  {
+    id: 'pre', name: 'Pre-Closing', color: '#6c3fc5', budget: '',
+    tasks: [
+      { name: 'Get crawlspace/structural quotes', start: 0, dur: 2, priority: 'must', ref: 'Action item', dep: 'None', cost: '$0', note: 'Get 3 quotes; provide inspection sections 7.4, 7.5, 8.2, 8.6' },
+      { name: 'Get roofing quotes', start: 0, dur: 2, priority: 'must', ref: 'Action item', dep: 'None', cost: '$0', note: 'Include tear-off, shingles, flashing, ridge vent, gutters' },
+      { name: 'Get electrical + plumbing quotes', start: 1, dur: 2, priority: 'must', ref: 'Action item', dep: 'None', cost: '$0', note: 'Get 2 quotes each trade' },
+      { name: 'Align funding commitments', start: 1, dur: 2, priority: 'must', ref: 'Action item', dep: 'None', cost: '$0', note: 'Lonnie, Elijah, Helena confirm contributions + assigned phases' },
+      { name: 'Buy smoke/CO detectors (Elijah DIY)', start: 2, dur: 1, priority: 'must', ref: '9.14, 9.15', dep: 'None', cost: '$50 -- $100', note: 'Under $100 -- battery-operated units' },
+    ]
+  },
+  {
+    id: 'p1', name: 'Phase 1 -- Structure / Crawlspace', color: '#c81e1e', budget: '$5.3K -- $13.5K',
+    tasks: [
+      { name: 'Vapor barrier installation', start: 3, dur: 1, priority: 'must', ref: '8.6.1', dep: 'None', cost: '$1,500 -- $3,000', note: 'Missing entirely; all moisture control starts here' },
+      { name: 'Fungal growth eval + remediation', start: 3, dur: 1, priority: 'must', ref: '7.5.1', dep: 'None', cost: '$1,000 -- $3,000', note: 'May require mold testing first' },
+      { name: 'Joist/beam reinforcement', start: 3, dur: 2, priority: 'must', ref: '7.4.1, 7.5.2', dep: 'None', cost: '$2,500 -- $7,000', note: 'Wood rot, insect damage, improper supports' },
+      { name: 'Asbestos pipe insulation eval', start: 3, dur: 1, priority: 'must', ref: '11.4.1', dep: 'None', cost: '$300 -- $500', note: 'If confirmed, abatement adds $2K-$5K' },
+    ]
+  },
+  {
+    id: 'p2', name: 'Phase 2 -- Roof / Drainage', color: '#d97706', budget: '$14.7K -- $24.5K',
+    tasks: [
+      { name: 'Full roof tear-off + replacement', start: 4, dur: 2, priority: 'should', ref: '4.3.1', dep: 'Can overlap Phase 1', cost: '$12,000 -- $18,000', note: 'Late stage of life (17-19 yrs); add ridge vent' },
+      { name: 'Flashing repairs', start: 5, dur: 1, priority: 'should', ref: '4.4.2', dep: 'After roof', cost: '$500 -- $1,500', note: 'Bundle with roof replacement' },
+      { name: 'Gutter + downspout install', start: 5, dur: 1, priority: 'should', ref: '4.5.1', dep: 'After roof', cost: '$1,500 -- $3,000', note: 'Currently missing entirely' },
+      { name: 'Rafter support repair', start: 4, dur: 1, priority: 'should', ref: '7.7.1', dep: 'None', cost: '$500 -- $1,500', note: 'Cracked/detached supports in attic' },
+      { name: 'Exhaust duct extension', start: 5, dur: 1, priority: 'should', ref: '5.5.1', dep: 'After roof', cost: '$200 -- $500', note: 'Not venting to exterior -- condensation damage' },
+    ]
+  },
+  {
+    id: 'p3', name: 'Phase 3 -- Electrical', color: '#2563eb', budget: '$1.7K -- $5.5K',
+    tasks: [
+      { name: 'Breaker replacement (30A)', start: 5, dur: 1, priority: 'must', ref: '9.6.1', dep: 'Phase 1', cost: '$300 -- $800', note: 'Overheating -- fire risk' },
+      { name: 'GFCI installation (2 baths)', start: 5, dur: 1, priority: 'must', ref: '9.12.1', dep: 'Phase 1', cost: '$200 -- $500', note: 'Code requirement in wet areas' },
+      { name: 'Ground ungrounded outlets', start: 5, dur: 1, priority: 'should', ref: '9.9.2', dep: 'Phase 1', cost: '$1,000 -- $3,500', note: 'Throughout house; may need crawlspace access' },
+      { name: 'Kitchen light + receptacle covers', start: 6, dur: 1, priority: 'could', ref: '9.10.1, 9.9.1', dep: 'None', cost: '$105 -- $410', note: 'Bundle with electrician visit' },
+    ]
+  },
+  {
+    id: 'p4', name: 'Phase 4 -- Plumbing', color: '#0d9488', budget: '$6.3K -- $14.5K',
+    tasks: [
+      { name: 'Repipe galvanized to PEX/copper', start: 6, dur: 2, priority: 'should', ref: '11.4.1', dep: 'Phase 1', cost: '$4,000 -- $10,000', note: 'Corroded supply lines; most disruptive work' },
+      { name: 'Water heater replacement + pan', start: 6, dur: 1, priority: 'must', ref: '11.6.1', dep: 'None', cost: '$1,500 -- $2,500', note: '23 years old -- well past life expectancy' },
+      { name: 'Copper pipe leak repair', start: 6, dur: 1, priority: 'should', ref: '11.4.2', dep: 'Phase 1', cost: '$200 -- $500', note: 'Active leak in crawlspace' },
+      { name: 'Bathroom fixture repairs', start: 7, dur: 1, priority: 'could', ref: '11.9-11.11', dep: 'After repipe', cost: '$300 -- $800', note: 'Sink leak, loose toilet, slow tub drain' },
+      { name: 'Kitchen drain + disposal + hose bibb', start: 7, dur: 1, priority: 'could', ref: '11.9.2, 13.6.1', dep: 'After repipe', cost: '$300 -- $700', note: 'Batch with plumber visit' },
+    ]
+  },
+  {
+    id: 'p5', name: 'Phase 5 -- HVAC', color: '#7c3aed', budget: '$0.5K -- $2K',
+    tasks: [
+      { name: 'System service + cleaning', start: 7, dur: 1, priority: 'should', ref: '10.6.1', dep: 'Phase 2', cost: '$300 -- $800', note: 'Delayed maintenance' },
+      { name: 'Ductwork repair', start: 8, dur: 1, priority: 'could', ref: '10.9.2', dep: 'After service', cost: '$200 -- $1,200', note: 'Excessive elbows/bends reducing airflow' },
+    ]
+  },
+  {
+    id: 'p6', name: 'Phase 6 -- Interior', color: '#059669', budget: '$9.2K -- $13.6K',
+    tasks: [
+      { name: 'Flooring replacement', start: 9, dur: 2, priority: 'could', ref: 'Budget', dep: 'Phases 1, 4', cost: '$5,000 -- $7,000', note: 'WAIT for all subfloor/plumbing work to finish' },
+      { name: 'Interior paint', start: 10, dur: 2, priority: 'could', ref: 'Budget', dep: 'After flooring', cost: '$4,000 -- $6,000', note: 'After any wall repairs from plumbing/electrical' },
+      { name: 'Door repairs', start: 11, dur: 1, priority: 'could', ref: '12.5.1', dep: 'None', cost: '$200 -- $600', note: 'Damaged doors' },
+    ]
+  },
+  {
+    id: 'p7', name: 'Phase 7 -- Exterior', color: '#64748b', budget: '$1.9K -- $5.3K',
+    tasks: [
+      { name: 'Porch steps + handrail', start: 10, dur: 1, priority: 'could', ref: '3.7.1', dep: 'Phase 2', cost: '$800 -- $2,000', note: 'Safety -- damaged steps' },
+      { name: 'Mortar joint repointing', start: 11, dur: 1, priority: 'could', ref: '3.2.1', dep: 'None', cost: '$500 -- $1,500', note: 'Cracked mortar joints -- back and right walls' },
+      { name: 'Exterior paint + vegetation', start: 11, dur: 1, priority: 'could', ref: '3.3.2, 3.5.1', dep: 'After roof', cost: '$600 -- $1,800', note: 'Fascia, window frames, trim vegetation' },
+    ]
+  }
+];
+
+const TOTAL_WEEKS = 14;
+const WEEK_LABELS = [
+  'Mar 14 -- Mar 20',  // Pre-Close Wk 1
+  'Mar 21 -- Mar 27',  // Pre-Close Wk 2
+  'Mar 28 -- Apr 1',   // Pre-Close Wk 3
+  'Apr 2 -- Apr 8',    // Post-Close Wk 1   (CLOSING)
+  'Apr 9 -- Apr 15',   // Post-Close Wk 2
+  'Apr 16 -- Apr 22',  // Post-Close Wk 3
+  'Apr 23 -- Apr 29',  // Post-Close Wk 4
+  'Apr 30 -- May 6',   // Post-Close Wk 5
+  'May 7 -- May 13',   // Post-Close Wk 6
+  'May 14 -- May 20',  // Post-Close Wk 7
+  'May 21 -- May 27',  // Post-Close Wk 8
+  'May 28 -- Jun 3',   // Post-Close Wk 9
+  'Jun 4 -- Jun 10',   // Post-Close Wk 10
+  'Jun 11 -- Jun 17',  // Post-Close Wk 11
+];
+
+let activeFilter = 'all';
+
+function render() {
+  const wrapper = document.getElementById('ganttWrapper');
+  wrapper.innerHTML = '';
+
+  // Header
+  const WEEK_NUMBERS = [
+    'Pre-Close 1', 'Pre-Close 2', 'Pre-Close 3',
+    'CLOSING', 'Week 2', 'Week 3', 'Week 4', 'Week 5',
+    'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11'
+  ];
+  const headerDiv = document.createElement('div');
+  headerDiv.className = 'gantt-header';
+  WEEK_LABELS.forEach((lbl, i) => {
+    const col = document.createElement('div');
+    col.className = 'week-col' + (i === 3 ? ' closing-week' : '');
+    const dateSpan = document.createTextNode(lbl);
+    col.appendChild(dateSpan);
+    const numSpan = document.createElement('span');
+    numSpan.className = 'week-number';
+    numSpan.textContent = WEEK_NUMBERS[i];
+    col.appendChild(numSpan);
+    headerDiv.appendChild(col);
+  });
+  wrapper.appendChild(headerDiv);
+
+  // Budget cutoff: Phases 1-4 are funded, 5-7 are not
+  const UNFUNDED_PHASES = ['p5', 'p6', 'p7'];
+  const BUDGET_LIMIT = 30000;
+
+  // Running mid-estimate totals by phase
+  const PHASE_MID_TOTALS = {
+    'pre': { mid: 75, running: 75 },
+    'p1': { mid: 9400, running: 9475 },
+    'p2': { mid: 19600, running: 29075 },
+    'p3': { mid: 3608, running: 32683 },
+    'p4': { mid: 10400, running: 43083 },
+    'p5': { mid: 1250, running: 44333 },
+    'p6': { mid: 11400, running: 55733 },
+    'p7': { mid: 3600, running: 59333 },
+  };
+
+  let budgetCutoffInserted = false;
+
+  PHASES.forEach(phase => {
+    const filteredTasks = phase.tasks.filter(t => {
+      if (activeFilter === 'all') return true;
+      return t.priority === activeFilter;
+    });
+    if (filteredTasks.length === 0) return;
+
+    // Insert budget cutoff line before first unfunded phase
+    if (!budgetCutoffInserted && UNFUNDED_PHASES.includes(phase.id)) {
+      budgetCutoffInserted = true;
+      const cutoff = document.createElement('div');
+      cutoff.className = 'budget-cutoff';
+      const line = document.createElement('div');
+      line.className = 'budget-cutoff-line';
+      cutoff.appendChild(line);
+      const label = document.createElement('div');
+      label.className = 'budget-cutoff-label';
+      label.textContent = 'BUDGET LIMIT: $30,000';
+      cutoff.appendChild(label);
+      const rightLabel = document.createElement('div');
+      rightLabel.className = 'budget-cutoff-right';
+      rightLabel.textContent = 'ADDITIONAL FUNDING NEEDED BELOW';
+      cutoff.appendChild(rightLabel);
+      wrapper.appendChild(cutoff);
+    }
+
+    const group = document.createElement('div');
+    group.className = 'phase-group' + (UNFUNDED_PHASES.includes(phase.id) ? ' unfunded' : '');
+
+    // Phase label
+    const labelRow = document.createElement('div');
+    labelRow.className = 'phase-label-row';
+
+    const icon = document.createElement('div');
+    icon.className = 'phase-icon';
+    icon.style.background = phase.color;
+    icon.textContent = phase.id === 'pre' ? 'P' : phase.id.replace('p','');
+    labelRow.appendChild(icon);
+
+    const name = document.createElement('div');
+    name.className = 'phase-name';
+    name.textContent = phase.name;
+    labelRow.appendChild(name);
+
+    if (phase.budget) {
+      const budget = document.createElement('div');
+      budget.className = 'phase-budget';
+      budget.textContent = phase.budget;
+
+      // Add running total
+      const totals = PHASE_MID_TOTALS[phase.id];
+      if (totals) {
+        const runSpan = document.createElement('span');
+        runSpan.className = 'running-total' + (totals.running > BUDGET_LIMIT ? ' over-budget' : '');
+        const fmt = totals.running >= 1000 ? '$' + (totals.running/1000).toFixed(1) + 'K' : '$' + totals.running;
+        runSpan.textContent = ' (running: ' + fmt + ')';
+        budget.appendChild(runSpan);
+      }
+
+      labelRow.appendChild(budget);
+    }
+
+    group.appendChild(labelRow);
+
+    // Tasks
+    filteredTasks.forEach(task => {
+      const row = document.createElement('div');
+      row.className = 'task-row';
+
+      const taskName = document.createElement('div');
+      taskName.className = 'task-name';
+      taskName.innerHTML = task.name;
+      if (task.priority) {
+        const badge = document.createElement('span');
+        badge.className = 'task-priority priority-' + task.priority;
+        badge.textContent = task.priority;
+        taskName.appendChild(badge);
+      }
+      if (task.cost && task.cost !== '$0') {
+        const costSpan = document.createElement('span');
+        costSpan.className = 'task-cost';
+        costSpan.textContent = task.cost;
+        taskName.appendChild(costSpan);
+      }
+      row.appendChild(taskName);
+
+      const barArea = document.createElement('div');
+      barArea.className = 'task-bar-area';
+
+      for (let w = 0; w < TOTAL_WEEKS; w++) {
+        const cell = document.createElement('div');
+        cell.className = 'bar-cell';
+
+        if (w >= task.start && w < task.start + task.dur) {
+          const bar = document.createElement('div');
+          bar.className = 'bar-segment';
+          bar.style.background = phase.color;
+          bar.style.opacity = task.priority === 'must' ? '1' : task.priority === 'should' ? '0.8' : '0.55';
+
+          if (w === task.start && task.dur > 1) {
+            bar.style.borderRadius = '4px 0 0 4px';
+          } else if (w === task.start + task.dur - 1 && task.dur > 1) {
+            bar.style.borderRadius = '0 4px 4px 0';
+          } else if (task.dur === 1) {
+            bar.style.borderRadius = '4px';
+          } else {
+            bar.style.borderRadius = '0';
+          }
+
+          bar.addEventListener('mouseenter', (e) => showTooltip(e, task, phase));
+          bar.addEventListener('mousemove', (e) => moveTooltip(e));
+          bar.addEventListener('mouseleave', hideTooltip);
+          cell.appendChild(bar);
+        }
+
+        barArea.appendChild(cell);
+      }
+
+      row.appendChild(barArea);
+      group.appendChild(row);
+    });
+
+    wrapper.appendChild(group);
+  });
+
+  // Closing milestone line
+  // Week index 3 is the closing week
+}
+
+function showTooltip(e, task, phase) {
+  const tt = document.getElementById('tooltip');
+  const startDate = WEEK_LABELS[task.start];
+  const endIdx = Math.min(task.start + task.dur - 1, WEEK_LABELS.length - 1);
+  const endDate = WEEK_LABELS[endIdx];
+  const timing = task.dur === 1 ? startDate : `${startDate.split(' -- ')[0]} -- ${endDate.split(' -- ')[1]}`;
+  tt.innerHTML = `
+    <div class="tt-title">${task.name}</div>
+    <div class="tt-detail">
+      <strong>Phase:</strong> ${phase.name}<br>
+      <strong>Priority:</strong> ${task.priority.toUpperCase()}<br>
+      <strong>Dates:</strong> ${timing} (${task.dur} wk${task.dur > 1 ? 's' : ''})<br>
+      <strong>Est. Cost:</strong> ${task.cost || 'TBD'}<br>
+      <strong>Inspection Ref:</strong> ${task.ref}<br>
+      <strong>Depends On:</strong> ${task.dep}<br>
+      <strong>Notes:</strong> ${task.note}
+    </div>
+  `;
+  tt.style.display = 'block';
+  moveTooltip(e);
+}
+
+function moveTooltip(e) {
+  const tt = document.getElementById('tooltip');
+  let x = e.clientX + 16;
+  let y = e.clientY + 16;
+  if (x + 280 > window.innerWidth) x = e.clientX - 290;
+  if (y + 200 > window.innerHeight) y = e.clientY - 160;
+  tt.style.left = x + 'px';
+  tt.style.top = y + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
